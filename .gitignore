@@ -72,3 +72,7 @@ yarn.lock
 
 # Development Plans (local development only)
 context/
+
+# Markdown files except README files
+*.md
+!README*.md
