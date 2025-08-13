@@ -1,14 +1,45 @@
-# Twitch MCP Server
+# Twitch MCP Server - Eclipse Edition
 
-<a href="https://glama.ai/mcp/servers/@Eclipse-XV/twitch-mcp">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Eclipse-XV/twitch-mcp/badge" />
+<a href="https://smithery.ai">
+  <img width="380" height="100" src="https://smithery.ai/badge.svg" alt="Deploy with Smithery" />
 </a>
 
-AI-powered tools for Twitch streamers, exposed via the Model Context Protocol (MCP). Connect your coding/chat assistants (Gemini CLI, Qwen Coder, Claude Code, etc.) to your Twitch chat for moderation, stream management, and engagement.
+**Cloud-ready** Twitch MCP Server with [Smithery](https://smithery.ai) one-click deployment. AI-powered tools for Twitch streamers - chat moderation, stream management, and viewer engagement with zero local setup required.
 
-## Quick Start (No Cloning Required)
+## 🚀 One-Click Setup with Smithery
 
-### Prerequisites
+**The easiest way to get started:**
+
+1. Visit [Smithery.ai](https://smithery.ai)
+2. Search for "Twitch MCP Server" in the registry
+3. Click "Deploy" to add it to your workspace
+4. Configure your Twitch credentials:
+   - **Channel**: Your Twitch username (without #)
+   - **OAuth Token**: Generate at [twitchtokengenerator.com](https://twitchtokengenerator.com) 
+   - **Client ID**: From your [Twitch Developer Console](https://dev.twitch.tv/console)
+   - **Broadcaster ID**: Your numeric user ID ([find here](https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/))
+5. Start using AI tools for your Twitch stream!
+
+**No downloads, installations, or technical setup required!**
+
+## 🛠️ Available Tools
+
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| `sendMessageToChat` | Send message to Twitch chat | Announcements, responses |
+| `createTwitchPoll` | Create interactive polls | Viewer engagement |
+| `createTwitchPrediction` | Create channel predictions | Interactive betting |
+| `createTwitchClip` | Generate clips of current stream | Highlight moments |
+| `analyzeChat` | AI analysis of recent chat activity | Understand chat sentiment |
+| `getRecentChatLog` | Get last 20 chat messages | Moderation context |
+| `timeoutUser` | Timeout users (with smart targeting) | Chat moderation |
+| `banUser` | Ban users from chat | Severe violations |
+| `updateStreamTitle` | Change your stream title | Dynamic titles |
+| `updateStreamCategory` | Update game category | Game switching |
+
+## 💡 Alternative Setup Options
+
+### For Local Development
 - Node.js 14+ and Java 11+ available on your system PATH
 - A Twitch account with appropriate API credentials
 
