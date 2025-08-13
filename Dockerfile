@@ -36,15 +36,15 @@ RUN chown -R app:app /app
 # Switch to non-root user
 USER app
 
-# Expose the port that Smithery will configure
-EXPOSE ${PORT}
-
-# Health check endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/mcp || exit 1
+# Expose the port (Smithery will set PORT env var)
+EXPOSE 8080
 
 # Set environment variables for optimal container performance
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication"
+
+# Health check endpoint (will use PORT env var at runtime)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-8080}/mcp || exit 1
 
 # Start the application
 CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/twitch-mcp-runner.jar"]

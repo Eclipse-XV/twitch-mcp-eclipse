@@ -1,73 +1,29 @@
-name: twitch-mcp
-description: "Twitch MCP Server - AI integration for Twitch chat moderation, stream management, and viewer engagement"
-version: "1.0.0"
-
-runtime: container
+runtime: "container"
 
 build:
   dockerfile: "Dockerfile"
-  context: "."
+  dockerBuildPath: "."
 
-start:
-  port: ${PORT}
-  command: ["java", "-jar", "/app/twitch-mcp-runner.jar"]
-
-config:
-  schema:
-    twitch.channel:
-      type: string
-      description: "Your Twitch channel name (without the #)"
-      required: true
-      
-    twitch.auth:
-      type: string
-      description: "Your Twitch OAuth token (without 'oauth:' prefix)"
-      required: true
-      secret: true
-      
-    twitch.clientId:
-      type: string  
-      description: "Your Twitch application client ID"
-      required: true
-      
-    twitch.broadcasterId:
-      type: string
-      description: "Your Twitch broadcaster ID (numeric)"
-      required: true
-
-tools:
-  - name: "sendMessageToChat"
-    description: "Send message to the Twitch Chat"
-    
-  - name: "createTwitchPoll"
-    description: "Create a Twitch Poll"
-    
-  - name: "createTwitchPrediction" 
-    description: "Create a Twitch Prediction"
-    
-  - name: "createTwitchClip"
-    description: "Create a Twitch clip of the current stream"
-    
-  - name: "analyzeChat"
-    description: "Analyze recent Twitch chat messages and provide a summary"
-    
-  - name: "getRecentChatLog"
-    description: "Get the last 20 chat messages for moderation context"
-    
-  - name: "timeoutUser"
-    description: "Timeout a user in the Twitch chat"
-    
-  - name: "banUser"
-    description: "Ban a user from the Twitch chat"
-    
-  - name: "updateStreamTitle"
-    description: "Update the stream title"
-    
-  - name: "updateStreamCategory"
-    description: "Update the game category of the stream"
-
-categories:
-  - "chat-moderation"
-  - "stream-management" 
-  - "twitch-integration"
-  - "viewer-engagement"
+startCommand:
+  type: "http"
+  configSchema:
+    type: "object"
+    properties:
+      twitch.channel:
+        type: "string"
+        description: "Your Twitch channel name (without the #)"
+      twitch.auth:
+        type: "string"
+        description: "Your Twitch OAuth token (without 'oauth:' prefix)"
+      twitch.clientId:
+        type: "string"
+        description: "Your Twitch application client ID"
+      twitch.broadcasterId:
+        type: "string"
+        description: "Your Twitch broadcaster ID (numeric)"
+    required: ["twitch.channel", "twitch.auth", "twitch.clientId", "twitch.broadcasterId"]
+  exampleConfig:
+    twitch.channel: "your_channel_name"
+    twitch.auth: "your_oauth_token"
+    twitch.clientId: "your_client_id"
+    twitch.broadcasterId: "123456789"
