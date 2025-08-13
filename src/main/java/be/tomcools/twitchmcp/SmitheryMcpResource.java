@@ -48,46 +48,124 @@ public class SmitheryMcpResource {
     }
 
     /**
-     * Handle POST requests - typically for tool execution
+     * Handle POST requests - supports both custom format and MCP JSON-RPC
      * Validates authentication only when tools are invoked (lazy loading)
      */
     @POST
     public Response handlePost(Map<String, Object> request) {
         try {
-            // Extract tool name and parameters from request
-            String tool = (String) request.get("tool");
-            Map<String, Object> params = (Map<String, Object>) request.get("params");
-            
-            if (tool == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Tool name is required"))
-                        .build();
+            // Check if this is an MCP JSON-RPC request
+            if (request.containsKey("method")) {
+                return handleMcpRequest(request);
             }
             
-            // Parse configuration from query parameters ONLY when executing tools
-            Map<String, String> config = parseConfiguration();
-            
-            // Validate Twitch authentication only when tools are actually invoked
-            String validationError = validateTwitchConfiguration(config);
-            if (validationError != null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", validationError))
-                        .build();
-            }
-            
-            // Update Twitch client configuration
-            updateTwitchConfiguration(config);
-            
-            // Execute the requested tool
-            Object result = executeTool(tool, params != null ? params : Map.of());
-            
-            return Response.ok(Map.of("result", result)).build();
+            // Handle our custom format
+            return handleCustomRequest(request);
             
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to execute tool: " + e.getMessage()))
+                    .entity(Map.of("error", "Failed to process request: " + e.getMessage()))
                     .build();
         }
+    }
+
+    /**
+     * Handle MCP JSON-RPC requests
+     */
+    private Response handleMcpRequest(Map<String, Object> request) {
+        String method = (String) request.get("method");
+        Object id = request.get("id");
+        
+        switch (method) {
+            case "tools/list":
+                // Return tools list without authentication (lazy loading)
+                return Response.ok(Map.of(
+                    "jsonrpc", "2.0",
+                    "id", id,
+                    "result", Map.of("tools", getMcpToolsList())
+                )).build();
+                
+            case "tools/call":
+                // Handle tool execution with authentication
+                Map<String, Object> params = (Map<String, Object>) request.get("params");
+                if (params == null) {
+                    return createMcpError(id, -32602, "Invalid params");
+                }
+                
+                String toolName = (String) params.get("name");
+                Map<String, Object> arguments = (Map<String, Object>) params.get("arguments");
+                
+                // Parse configuration from query parameters
+                Map<String, String> config = parseConfiguration();
+                
+                // Validate authentication for tool execution
+                String validationError = validateTwitchConfiguration(config);
+                if (validationError != null) {
+                    return createMcpError(id, -32001, validationError);
+                }
+                
+                // Update configuration and execute
+                updateTwitchConfiguration(config);
+                Object result = executeTool(toolName, arguments != null ? arguments : Map.of());
+                
+                return Response.ok(Map.of(
+                    "jsonrpc", "2.0",
+                    "id", id,
+                    "result", Map.of("content", result)
+                )).build();
+                
+            default:
+                return createMcpError(id, -32601, "Method not found: " + method);
+        }
+    }
+
+    /**
+     * Handle our custom HTTP request format
+     */
+    private Response handleCustomRequest(Map<String, Object> request) {
+        // Extract tool name and parameters from request
+        String tool = (String) request.get("tool");
+        Map<String, Object> params = (Map<String, Object>) request.get("params");
+        
+        if (tool == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "Tool name is required"))
+                    .build();
+        }
+        
+        // Parse configuration from query parameters ONLY when executing tools
+        Map<String, String> config = parseConfiguration();
+        
+        // Validate Twitch authentication only when tools are actually invoked
+        String validationError = validateTwitchConfiguration(config);
+        if (validationError != null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", validationError))
+                    .build();
+        }
+        
+        // Update Twitch client configuration
+        updateTwitchConfiguration(config);
+        
+        // Execute the requested tool
+        Object result = executeTool(tool, params != null ? params : Map.of());
+        
+        return Response.ok(Map.of("result", result)).build();
+    }
+
+    /**
+     * Create MCP JSON-RPC error response
+     */
+    private Response createMcpError(Object id, int code, String message) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Map.of(
+                    "jsonrpc", "2.0",
+                    "id", id,
+                    "error", Map.of(
+                        "code", code,
+                        "message", message
+                    )
+                )).build();
     }
 
     /**
@@ -169,6 +247,112 @@ public class SmitheryMcpResource {
         if (broadcasterId != null) {
             System.setProperty("twitch.broadcaster_id", broadcasterId);
         }
+    }
+
+    /**
+     * Return MCP-formatted tools list for JSON-RPC
+     */
+    private java.util.List<Map<String, Object>> getMcpToolsList() {
+        return Arrays.asList(
+            Map.of(
+                "name", "sendMessageToChat",
+                "description", "Send message to the Twitch Chat",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "message", Map.of("type", "string", "description", "The message to send")
+                    ),
+                    "required", Arrays.asList("message")
+                )
+            ),
+            Map.of(
+                "name", "createTwitchPoll",
+                "description", "Create a Twitch Poll",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "title", Map.of("type", "string", "description", "Poll title"),
+                        "choices", Map.of("type", "string", "description", "Comma-separated choices"),
+                        "duration", Map.of("type", "integer", "description", "Duration in seconds")
+                    ),
+                    "required", Arrays.asList("title", "choices", "duration")
+                )
+            ),
+            Map.of(
+                "name", "createTwitchPrediction", 
+                "description", "Create a Twitch Prediction",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "title", Map.of("type", "string", "description", "Prediction title"),
+                        "outcomes", Map.of("type", "string", "description", "Comma-separated outcomes"),
+                        "duration", Map.of("type", "integer", "description", "Duration in seconds")
+                    ),
+                    "required", Arrays.asList("title", "outcomes", "duration")
+                )
+            ),
+            Map.of(
+                "name", "createTwitchClip",
+                "description", "Create a Twitch clip of the current stream",
+                "inputSchema", Map.of("type", "object", "properties", Map.of())
+            ),
+            Map.of(
+                "name", "analyzeChat",
+                "description", "Analyze recent Twitch chat messages and provide a summary",
+                "inputSchema", Map.of("type", "object", "properties", Map.of())
+            ),
+            Map.of(
+                "name", "getRecentChatLog",
+                "description", "Get the last 20 chat messages for moderation context",
+                "inputSchema", Map.of("type", "object", "properties", Map.of())
+            ),
+            Map.of(
+                "name", "timeoutUser",
+                "description", "Timeout a user in the Twitch chat",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "usernameOrDescriptor", Map.of("type", "string", "description", "Username or descriptor"),
+                        "reason", Map.of("type", "string", "description", "Reason for timeout")
+                    ),
+                    "required", Arrays.asList("usernameOrDescriptor")
+                )
+            ),
+            Map.of(
+                "name", "banUser",
+                "description", "Ban a user from the Twitch chat", 
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "usernameOrDescriptor", Map.of("type", "string", "description", "Username or descriptor"),
+                        "reason", Map.of("type", "string", "description", "Reason for ban")
+                    ),
+                    "required", Arrays.asList("usernameOrDescriptor")
+                )
+            ),
+            Map.of(
+                "name", "updateStreamTitle",
+                "description", "Update the stream title",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "title", Map.of("type", "string", "description", "New stream title")
+                    ),
+                    "required", Arrays.asList("title")
+                )
+            ),
+            Map.of(
+                "name", "updateStreamCategory",
+                "description", "Update the game category of the stream",
+                "inputSchema", Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "category", Map.of("type", "string", "description", "Game category name")
+                    ),
+                    "required", Arrays.asList("category")
+                )
+            )
+        );
     }
 
     /**
