@@ -77,6 +77,24 @@ public class SmitheryMcpResource {
         Object id = request.get("id");
         
         switch (method) {
+            case "initialize":
+                // MCP initialization handshake
+                Map<String, Object> params = (Map<String, Object>) request.get("params");
+                return Response.ok(Map.of(
+                    "jsonrpc", "2.0",
+                    "id", id,
+                    "result", Map.of(
+                        "protocolVersion", "2025-06-18",
+                        "serverInfo", Map.of(
+                            "name", "Twitch MCP Server - Eclipse Edition",
+                            "version", "1.0.0"
+                        ),
+                        "capabilities", Map.of(
+                            "tools", Map.of("listChanged", true)
+                        )
+                    )
+                )).build();
+                
             case "tools/list":
                 // Return tools list without authentication (lazy loading)
                 return Response.ok(Map.of(
@@ -87,13 +105,13 @@ public class SmitheryMcpResource {
                 
             case "tools/call":
                 // Handle tool execution with authentication
-                Map<String, Object> params = (Map<String, Object>) request.get("params");
-                if (params == null) {
+                Map<String, Object> callParams = (Map<String, Object>) request.get("params");
+                if (callParams == null) {
                     return createMcpError(id, -32602, "Invalid params");
                 }
                 
-                String toolName = (String) params.get("name");
-                Map<String, Object> arguments = (Map<String, Object>) params.get("arguments");
+                String toolName = (String) callParams.get("name");
+                Map<String, Object> arguments = (Map<String, Object>) callParams.get("arguments");
                 
                 // Parse configuration from query parameters
                 Map<String, String> config = parseConfiguration();

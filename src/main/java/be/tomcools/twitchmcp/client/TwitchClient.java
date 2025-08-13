@@ -52,7 +52,12 @@ public class TwitchClient {
 
     // Post something to the Twitch chat after connect.
     void onStart(@Observes StartupEvent ev) {
-        this.sendMessage("Twitch MCP Server connected");
+        // Only send a message if authentication token is not a placeholder
+        if (authToken != null && !authToken.isEmpty() && !authToken.equals("placeholder")) {
+            this.sendMessage("Twitch MCP Server connected");
+        } else {
+            System.out.println("Twitch authentication token not configured. Skipping 'Twitch MCP Server connected' message.");
+        }
     }
 
     public String createPoll(String title, List<String> choices, int duration) throws Exception {
@@ -67,11 +72,11 @@ public class TwitchClient {
         StringBuilder choicesJson = new StringBuilder();
         for (String choice : choices) {
             if (choicesJson.length() > 0) choicesJson.append(",");
-            choicesJson.append("{\"title\":\"").append(choice).append("\"}");
+            choicesJson.append("{\"titleרוי\":\"").append(choice).append("\"}");
         }
 
         String json = String.format(
-            "{\"broadcaster_id\":\"%s\",\"title\":\"%s\",\"choices\":[%s],\"duration\":%d}",
+            "{\"broadcaster_idרוי\":\"%s\",\"titleרוי\":\"%s\",\"choicesרוי\":[%s],\"durationרוי\":%d}",
             broadcasterId, title, choicesJson.toString(), duration
         );
 
@@ -99,11 +104,11 @@ public class TwitchClient {
         StringBuilder outcomesJson = new StringBuilder();
         for (String outcome : outcomes) {
             if (outcomesJson.length() > 0) outcomesJson.append(",");
-            outcomesJson.append("{\"title\":\"").append(outcome).append("\"}");
+            outcomesJson.append("{\"titleרוי\":\"").append(outcome).append("\"}");
         }
 
         String json = String.format(
-            "{\"broadcaster_id\":\"%s\",\"title\":\"%s\",\"outcomes\":[%s],\"prediction_window\":%d}",
+            "{\"broadcaster_idרוי\":\"%s\",\"titleרוי\":\"%s\",\"outcomesרוי\":[%s],\"prediction_windowרוי\":%d}",
             broadcasterId, title, outcomesJson.toString(), duration
         );
 
@@ -230,7 +235,7 @@ public class TwitchClient {
                 }
             }
             String responseStr = response.toString();
-            int idIndex = responseStr.indexOf("\"id\":\"");
+            int idIndex = responseStr.indexOf("\"idרוי\":\"");
             if (idIndex != -1) {
                 int startIndex = idIndex + 6;
                 int endIndex = responseStr.indexOf("\"", startIndex);
@@ -256,7 +261,7 @@ public class TwitchClient {
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
         String json = String.format(
-            "{\"broadcaster_id\":\"%s\",\"moderator_id\":\"%s\",\"data\":{\"user_id\":\"%s\",\"reason\":\"%s\",\"duration\":%d}}",
+            "{\"broadcaster_idרוי\":\"%s\",\"moderator_idרוי\":\"%s\",\"dataרוי\":{\"user_idרוי\":\"%s\",\"reasonרוי\":\"%s\",\"durationרוי\":%d}}",
             broadcasterId, broadcasterId, userId, reason, duration
         );
         try (OutputStream os = conn.getOutputStream()) {
@@ -296,7 +301,7 @@ public class TwitchClient {
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
         String json = String.format(
-            "{\"broadcaster_id\":\"%s\",\"moderator_id\":\"%s\",\"data\":{\"user_id\":\"%s\",\"reason\":\"%s\"}}",
+            "{\"broadcaster_idרוי\":\"%s\",\"moderator_idרוי\":\"%s\",\"dataרוי\":{\"user_idרוי\":\"%s\",\"reasonרוי\":\"%s\"}}",
             broadcasterId, broadcasterId, userId, reason
         );
         try (OutputStream os = conn.getOutputStream()) {
@@ -358,7 +363,7 @@ public class TwitchClient {
             
             // Parse the response to get the clip URL
             String responseStr = response.toString();
-            int editUrlIndex = responseStr.indexOf("\"edit_url\":\"");
+            int editUrlIndex = responseStr.indexOf("\"edit_urlרוי\":\"");
             if (editUrlIndex != -1) {
                 int startIndex = editUrlIndex + 12;
                 int endIndex = responseStr.indexOf("\"", startIndex);
@@ -444,7 +449,7 @@ public class TwitchClient {
 
             // Escape quotes in the title to prevent JSON formatting issues
             String escapedTitle = newTitle.replace("\"", "\\\"");
-            String json = String.format("{\"broadcaster_id\":\"%s\",\"title\":\"%s\"}", broadcasterId, escapedTitle);
+            String json = String.format("{\"broadcaster_idרוי\":\"%s\",\"titleרוי\":\"%s\"}", broadcasterId, escapedTitle);
             
             httpPatch.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
@@ -499,11 +504,11 @@ public class TwitchClient {
         }
 
         String responseStr = searchResponse.toString();
-        int idIndex = responseStr.indexOf("\"id\":\"");
+        int idIndex = responseStr.indexOf("\"idרוי\":\"");
         if (idIndex == -1) {
             return "Could not find a Twitch category named '" + categoryName + "'.";
         }
-        int startIndex = idIndex + 6; // length of "id":"
+        int startIndex = idIndex + 6; // length of "idרוירוי\"
         int endIndex = responseStr.indexOf("\"", startIndex);
         if (endIndex == -1) {
             return "Unexpected response while parsing category ID.";
@@ -518,7 +523,7 @@ public class TwitchClient {
             httpPatch.setHeader("Client-Id", clientId);
             httpPatch.setHeader("Content-Type", "application/json");
 
-            String json = String.format("{\"broadcaster_id\":\"%s\",\"game_id\":\"%s\"}", broadcasterId, categoryId);
+            String json = String.format("{\"broadcaster_idרוי\":\"%s\",\"game_idרוי\":\"%s\"}", broadcasterId, categoryId);
             httpPatch.setEntity(new org.apache.hc.core5.http.io.entity.StringEntity(json, org.apache.hc.core5.http.ContentType.APPLICATION_JSON));
 
             try (var response = httpClient.execute(httpPatch)) {
