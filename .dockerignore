@@ -1,0 +1,23 @@
+*
+!target/*-runner
+!target/*-runner.jar
+!target/lib/*
+!target/quarkus-app/*
+!src/
+!pom.xml
+!mvnw*
+
+# Exclude jar files from being added to Docker images
+*.jar
+dist/
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Environment files
+.env
+*.env
+application-local.properties
+application-dev.properties
+claude_desktop_config.json

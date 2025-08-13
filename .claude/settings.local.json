@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "Bash(git fetch:*)",
+      "Bash(echo \"Created backup branch: $BACKUP_BRANCH\")",
+      "Bash(git stash push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm install)",
+      "Bash(where gh)",
+      "Bash(github:*)",
+      "Bash(echo $PATH)",
+      "Bash(command -v:*)",
+      "Bash(gh:*)",
+      "Bash(source ~/.bashrc)",
+      "mcp__github-mcp__create_pull_request",
+      "mcp__github-mcp__create_issue",
+      "Bash(git merge-base:*)",
+      "Bash(git remote:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

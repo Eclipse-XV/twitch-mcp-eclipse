@@ -1,0 +1,74 @@
+#Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+.flattened-pom.xml
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Generic build output
+dist/
+*.jar
+
+# Allow CLI bin for npm package  
+!bin/
+!bin/twitch-mcp.js
+
+# IntelliJ
+.idea
+*.ipr
+*.iml
+*.iws
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+.vscode
+.factorypath
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Local environment
+.env
+
+# Plugin directory
+/.quarkus/cli/plugins/
+# TLS Certificates
+.certs/
+
+# Debug logs
+*.log
+*.log.*
+twitch_debug.log*
+
+# Environment and secrets
+*.env
+application-local.properties
+application-dev.properties
+claude_desktop_config.json
+
+# Node modules and npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Development Plans (local development only)
+context/
